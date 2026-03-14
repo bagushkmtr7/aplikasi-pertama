@@ -1,103 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/constants.dart';
+import 'features/prayer/prayer_screen.dart';
+import 'features/quran/quran_screen.dart';
+import 'features/auth/login_screen.dart';
 
-void main() {
-  runApp(const HamTaskApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: 'https://pjoyhfsdwsssqfxrcdfy.supabase.co',
+    anonKey: 'sb_publishable_tyF5rFufymK_rh4R3VXTiw_iA1Yc18p',
+  );
+  runApp(const NurDailyApp());
 }
 
-class HamTaskApp extends StatelessWidget {
-  const HamTaskApp({super.key});
-
+class NurDailyApp extends StatelessWidget {
+  const NurDailyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Ham Task Force',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
-        useMaterial3: true,
-      ),
-      home: const TaskListScreen(),
+      title: 'NurDaily',
+      theme: AppTheme.light,
+      home: const MainNavigation(),
     );
   }
 }
 
-class TaskListScreen extends StatefulWidget {
-  const TaskListScreen({super.key});
+class MainNavigation extends StatefulWidget {
+  final int initialIndex; // Tambahan buat kontrol tab
+  const MainNavigation({super.key, this.initialIndex = 0});
 
   @override
-  State<TaskListScreen> createState() => _TaskListScreenState();
+  State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _TaskListScreenState extends State<TaskListScreen> {
-  final List<String> _tasks = [];
-  final TextEditingController _controller = TextEditingController();
+class _MainNavigationState extends State<MainNavigation> {
+  late int _selectedIndex;
 
-  void _addTask() {
-    if (_controller.text.isNotEmpty) {
-      setState(() {
-        _tasks.add(_controller.text);
-        _controller.clear();
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex; // Set tab sesuai perintah
   }
 
-  void _removeTask(int index) {
-    setState(() {
-      _tasks.removeAt(index);
-    });
-  }
+  static const List<Widget> _pages = [
+    PrayerScreen(),
+    QuranScreen(),
+    LoginScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('📋 Ham Task Force', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.orange,
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Tulis tugas baru...',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: _addTask,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                  child: const Icon(Icons.add, color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: _tasks.isEmpty
-                ? const Center(child: Text('Belum ada tugas, santai dulu Ham! 😎'))
-                : ListView.builder(
-                    itemCount: _tasks.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                        child: ListTile(
-                          title: Text(_tasks[index]),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _removeTask(index),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) => setState(() => _selectedIndex = index),
+        selectedItemColor: AppColors.primary,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.access_time), label: 'Sholat'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Al-Qur\'an'),
+          BottomNavigationBarItem(icon: Icon(Icons.admin_panel_settings), label: 'Admin'),
         ],
       ),
     );
