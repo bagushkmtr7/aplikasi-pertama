@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants.dart';
 import 'features/prayer/prayer_screen.dart';
 import 'features/quran/quran_screen.dart';
 import 'features/auth/login_screen.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await Supabase.initialize(
-    url: 'https://pjoyhfsdwsssqfxrcdfy.supabase.co',
-    anonKey: 'sb_publishable_tyF5rFufymK_rh4R3VXTiw_iA1Yc18p',
-  );
   runApp(const NurDailyApp());
 }
 
@@ -28,20 +23,18 @@ class NurDailyApp extends StatelessWidget {
 }
 
 class MainNavigation extends StatefulWidget {
-  final int initialIndex; // Tambahan buat kontrol tab
+  final int initialIndex;
   const MainNavigation({super.key, this.initialIndex = 0});
-
   @override
   State<MainNavigation> createState() => _MainNavigationState();
 }
 
 class _MainNavigationState extends State<MainNavigation> {
   late int _selectedIndex;
-
   @override
   void initState() {
     super.initState();
-    _selectedIndex = widget.initialIndex; // Set tab sesuai perintah
+    _selectedIndex = widget.initialIndex;
   }
 
   static const List<Widget> _pages = [
