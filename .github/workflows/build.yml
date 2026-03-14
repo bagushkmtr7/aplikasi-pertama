@@ -31,6 +31,18 @@ jobs:
           echo "flutter.sdk=/opt/hostedtoolcache/flutter" >> android/local.properties
           echo "sdk.dir=/usr/local/lib/android/sdk" >> android/local.properties
       
+      - name: Fix app_links build.gradle
+        run: |
+          # Backup dan fix app_links build.gradle
+          APP_LINKS_GRADLE="$HOME/.pub-cache/hosted/pub.dev/app_links-*/android/build.gradle"
+          for file in $APP_LINKS_GRADLE; do
+            if [ -f "$file" ]; then
+              sed -i 's/compileSdkVersion = flutter.compileSdkVersion/compileSdkVersion = 34/g' "$file"
+              sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' "$file"
+              sed -i 's/targetSdkVersion = flutter.targetSdkVersion/targetSdkVersion = 34/g' "$file"
+            fi
+          done
+      
       - name: Get dependencies
         run: flutter pub get
       
