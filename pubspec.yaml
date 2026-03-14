@@ -1,4 +1,4 @@
-  name: nurdaily
+name: nurdaily
 description: "A new Flutter project."
 publish_to: 'none'
 version: 1.0.0+1
@@ -13,7 +13,8 @@ dependencies:
   shared_preferences: ^2.5.3
   http: ^1.6.0
   supabase_flutter: ^2.12.0
-  app_links: ^7.0.0
+  app_links: ^6.4.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
