@@ -18,8 +18,10 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") {
+            // Kita matikan dua-duanya biar nggak protes lagi si Gradle
             isMinifyEnabled = false
+            isShrinkResources = false 
             signingConfig = signingConfigs.getByName("debug")
         }
     }

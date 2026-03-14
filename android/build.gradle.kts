@@ -18,7 +18,6 @@ tasks.register<Delete>("clean") {
     delete(rootProject.buildDir)
 }
 
-// INI KUNCINYA: Daftarin plugin di sini
 plugins {
     id("com.google.gms.google-services") version "4.4.1" apply false
 }
