@@ -27,7 +27,6 @@ android {
     }
 
     compileOptions {
-        // --- INI OBATNYA HAM ---
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -43,6 +42,6 @@ flutter {
 }
 
 dependencies {
-    // Library pendukung Desugaring
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
+    // Kita turuti maunya, ganti ke 2.1.4
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
