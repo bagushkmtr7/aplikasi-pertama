@@ -12,10 +12,18 @@ class ApiService {
   static const String _baseUrlQuran = 'https://equran.id/api/v2';
   static const String _baseUrlPrayer = 'https://api.aladhan.com/v1';
 
-  // --- AUTH ---
+  // --- AUTH + AUTO SYNC KE DATABASE ---
   Future<UserCredential> signIn(String email, String password) async {
-  Future<void> _updateUserStats(String uid) async { await _db.collection("users").doc(uid).set({"last_login": FieldValue.serverTimestamp(), "email": _auth.currentUser?.email}, SetOptions(merge: true)); }
-    return await _auth.signInWithEmailAndPassword(email: email, password: password);
+    UserCredential cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
+    
+    // INI KUNCINYA: Begitu login berhasil, kita catat ke Firestore users
+    await _db.collection('users').doc(cred.user!.uid).set({
+      'email': email,
+      'last_login': FieldValue.serverTimestamp(),
+      'role': 'user', // Default sebagai user biasa
+    }, SetOptions(merge: true));
+    
+    return cred;
   }
 
   Future<void> signOut() async {
@@ -46,7 +54,7 @@ class ApiService {
     });
   }
 
-  // --- QURAN (Ditambahin biar gak error lagi) ---
+  // --- QURAN & PRAYER ---
   Future<List<Surah>> getSurahs() async {
     final res = await http.get(Uri.parse('$_baseUrlQuran/surat'));
     if (res.statusCode == 200) {

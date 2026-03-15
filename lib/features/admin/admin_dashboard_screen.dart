@@ -3,6 +3,7 @@ import '../../core/admin_service.dart';
 import '../../core/api_service.dart';
 import '../../core/constants.dart';
 import '../../data/user_model.dart';
+import '../../main.dart';
 import 'widgets/stat_card.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -15,6 +16,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final _adminService = AdminService();
   final _api = ApiService();
 
+  void _handleLogout() async {
+    // 1. Suruh Firebase Logout
+    await _api.signOut();
+    
+    // 2. Tendang balik ke halaman utama (reset navigasi)
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MainNavigation(initialIndex: 0)),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,8 +38,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         title: const Text('Admin Console', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: () async => await _api.signOut(),
+            icon: const Icon(Icons.logout_rounded, color: Colors.red),
+            onPressed: _handleLogout, // Panggil fungsi logout di atas
           )
         ],
       ),
@@ -33,7 +48,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 1. OVERVIEW STATS ---
             const Text('Dashboard Overview', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 15),
             FutureBuilder<Map<String, dynamic>>(
@@ -54,10 +68,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 );
               },
             ),
-
             const SizedBox(height: 35),
-
-            // --- 2. USER MANAGEMENT ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -97,7 +108,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               value: 'ban',
                               child: Text(user.isBanned ? 'Unban User' : 'Ban User', style: TextStyle(color: user.isBanned ? Colors.green : Colors.red)),
                             ),
-                            const PopupMenuItem(value: 'role', child: Text('Change Role')),
                           ],
                         ),
                       ),

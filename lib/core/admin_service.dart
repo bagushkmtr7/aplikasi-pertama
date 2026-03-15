@@ -40,3 +40,13 @@ class AdminService {
     await _db.collection('users').doc(uid).update({'role': newRole.name});
   }
 }
+
+  // --- NOTIFICATION BROADCAST ---
+  Future<void> sendBroadcastNotification(String title, String body) async {
+    await _db.collection('notifications').add({
+      'title': title,
+      'body': body,
+      'sent_at': FieldValue.serverTimestamp(),
+      'status': 'sent',
+    });
+  }

@@ -1,14 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'core/constants.dart';
 import 'features/prayer/prayer_screen.dart';
 import 'features/quran/quran_screen.dart';
 import 'features/auth/login_screen.dart';
 
+// Fungsi buat handle pesan pas aplikasi di background
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
+
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp();
+    
+    // Minta ijin notifikasi ke user
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    await messaging.requestPermission(alert: true, badge: true, sound: true);
+    
+    // Dengerin pesan pas aplikasi lagi kebuka
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('Dapet pesan: ${message.notification?.title}');
+    });
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   } catch (e) {
     print("Firebase Error: $e");
   }
@@ -22,10 +39,7 @@ class NurDailyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'NurDaily',
-      theme: ThemeData(
-        primarySwatch: Colors.teal,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(primarySwatch: Colors.teal, useMaterial3: true),
       home: const MainNavigation(),
     );
   }
