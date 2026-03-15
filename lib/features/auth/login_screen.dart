@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../core/api_service.dart';
 import '../../core/constants.dart';
 import '../admin/admin_dashboard_screen.dart';
 
@@ -12,6 +13,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _api = ApiService();
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -19,20 +22,32 @@ class _LoginScreenState extends State<LoginScreen> {
     _checkSession();
   }
 
-  void _checkSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('is_logged_in') ?? false) {
-      if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const AdminDashboardScreen()));
+  void _checkSession() {
+    // Firebase otomatis inget login lu Ham, gak perlu SharedPreferences lagi
+    if (FirebaseAuth.instance.currentUser != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const AdminDashboardScreen()));
+      });
     }
   }
 
   void _handleLogin() async {
-    if (_emailController.text == 'admin' && _passwordController.text == 'admin') {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('is_logged_in', true);
-      if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const AdminDashboardScreen()));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coba admin/admin')));
+    setState(() => _isLoading = true);
+    try {
+      // Ini manggil fungsi Firebase yang kita buat di ApiService
+      await _api.signIn(_emailController.text.trim(), _passwordController.text.trim());
+      
+      if (mounted) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const AdminDashboardScreen()));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal Login: Email/Password salah!')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -43,13 +58,29 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
+          mainAxisAlignment: MainType.center,
           children: [
             const Icon(Icons.mosque, size: 80, color: AppColors.primary),
-            const SizedBox(height: 20),
-            TextField(controller: _emailController, decoration: const InputDecoration(labelText: 'Username')),
-            TextField(controller: _passwordController, obscureText: true, decoration: const InputDecoration(labelText: 'Password')),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: _handleLogin, child: const Text('MASUK')),
+            const SizedBox(height: 30),
+            TextField(
+              controller: _emailController, 
+              decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder())
+            ),
+            const SizedBox(height: 15),
+            TextField(
+              controller: _passwordController, 
+              obscureText: true, 
+              decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder())
+            ),
+            const SizedBox(height: 25),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _handleLogin, 
+                child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('MASUK'),
+              ),
+            ),
           ],
         ),
       ),
