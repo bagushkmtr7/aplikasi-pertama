@@ -39,3 +39,4 @@ flutter:
     - assets/databases/jalalayn.db
     - assets/databases/kata.db
     - assets/databases/sura-search.db
+    - assets/databases/surah_info.db

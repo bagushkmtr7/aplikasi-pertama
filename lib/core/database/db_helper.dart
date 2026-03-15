@@ -6,16 +6,12 @@ import 'package:sqflite/sqflite.dart';
 class DbHelper {
   static Database? _suraSearchDb;
   static Database? _alquranDb;
-  static Database? _latinDb;
-  static Database? _terjemahanDb;
-  static Database? _jalalaynDb;
-  static Database? _kataDb;
+  static Database? _surahInfoDb;
 
   Future<Database> _initDatabase(String fileName) async {
     var databasesPath = await getDatabasesPath();
     var path = join(databasesPath, fileName);
-
-    // Paksa hapus file lama supaya bener-bener ke-update dari assets
+    
     if (await File(path).exists()) {
       await deleteDatabase(path);
     }
@@ -26,23 +22,37 @@ class DbHelper {
       List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
       await File(path).writeAsBytes(bytes, flush: true);
     } catch (e) {
-      print("Gagal menyalin $fileName: $e");
+      print("Gagal copy $fileName: $e");
     }
 
     return await openDatabase(path, readOnly: true);
   }
 
-  // Getter masing-masing DB
   Future<Database> getSuraSearchDb() async => _suraSearchDb ??= await _initDatabase('sura-search.db');
   Future<Database> getAlquranDb() async => _alquranDb ??= await _initDatabase('alquran.db');
-  Future<Database> getLatinDb() async => _latinDb ??= await _initDatabase('latin.db');
-  Future<Database> getTerjemahanDb() async => _terjemahanDb ??= await _initDatabase('terjemahan.db');
-  Future<Database> getJalalaynDb() async => _jalalaynDb ??= await _initDatabase('jalalayn.db');
-  Future<Database> getKataDb() async => _kataDb ??= await _initDatabase('kata.db');
+  Future<Database> getSurahInfoDb() async => _surahInfoDb ??= await _initDatabase('surah_info.db');
 
-  // Ambil Daftar Surah dari tabel 'sura_search' (Sesuai foto 18669.jpg)
-  Future<List<Map<String, dynamic>>> getSurahList() async {
-    final db = await getSuraSearchDb();
-    return await db.query('sura_search');
+  Future<List<Map<String, dynamic>>> getFullSurahData() async {
+    final searchDb = await getSuraSearchDb();
+    final quranDb = await getAlquranDb();
+    final infoDb = await getSurahInfoDb();
+
+    List<Map<String, dynamic>> surahNames = await searchDb.query('sura_search');
+    List<Map<String, dynamic>> locations = await infoDb.query('info');
+    List<Map<String, dynamic>> counts = await quranDb.rawQuery(
+      'SELECT sura, COUNT(*) as total FROM quran GROUP BY sura'
+    );
+
+    return surahNames.map((s) {
+      int no = s['no'];
+      var locData = locations.firstWhere((l) => l['no'] == no, orElse: () => {'location': 'Mekkah'});
+      var countData = counts.firstWhere((c) => c['sura'] == no, orElse: () => {'total': 0});
+      
+      return {
+        ...s,
+        'location': locData['location'],
+        'total_verses': countData['total'],
+      };
+    }).toList();
   }
 }
